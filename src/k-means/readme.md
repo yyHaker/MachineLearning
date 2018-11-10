@@ -5,7 +5,7 @@
 ## result
 1. 在SampleData上表现良好，聚类结果图如下：
 
-    ![sample data cluster result](/src/k-means/pictures/mnist.png)
+    ![sample data cluster result](/src/k-means/pictures/sample.png)
 
 
 2. 在mnist上表现一般，聚类结果如下图：

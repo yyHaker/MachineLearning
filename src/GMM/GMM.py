@@ -95,7 +95,7 @@ def kmeans(data, K):
 
         # M步
         for k in range(K):
-            means[k] = 1.0 / numlog[k] * sumlog[k]
+            means[k] = 1.0 / (numlog[k] + 1.) * sumlog[k]
     return means
 
 
@@ -159,13 +159,23 @@ def GMM_prob(data, pis, means, convs):
 
 
 def experiment1():
+    """
+    1. 使用训练样本估计GMM参数(2个GMM)
+    2. 构造区分两类的GMM分类器
+    :return:
+    """
     # train GMM1 and GMM2
     K = 2
     train_data1, train_data2 = load_samples_data()
     print("for Train1 data: ")
     pis1, means1, convs1 = GMM(train_data1, K)
+    print("train1 data,  pi: ", pis1, " means: ", means1, " convs: ", convs1)
+
+    print("*"*100)
+
     print("for Train2 data: ")
     pis2, means2, convs2 = GMM(train_data2, K)
+    print("train2 data,  pi: ", pis2, " means: ", means2, " convs: ", convs2)
 
     # test the GMM classifier
     test_data1, test_data2 = load_samples_test_data()
@@ -184,9 +194,48 @@ def experiment1():
 
 
 def experiment2():
-    K = 10
+    """
+    GMM分类mnist.
+    ---------
+    1. 对每一个类别训练一个GMM.
+    2. 对于一个样本，判断这个样本属于哪个GMM的概率大就属于哪个类别.
+    :return:
+    """
+    # 设置GMM中的K值
+    K = 3
+    # 将数据分为C类
+    datas = {}
     train_datas, train_labels = load_mnist_data()
-    pis, means, convs = GMM(train_datas, 10)
+    for idx, j in enumerate(train_labels):
+        if j not in datas.keys():
+            datas[j] = []
+        datas[j].append(train_datas[idx])
+
+    # train C GMM
+    print("train C GMM....")
+    params = {}
+    for c in datas.keys():
+        pis, means, convs = GMM(np.array(datas[c], dtype='float64'), K)
+        params[c] = (pis, means, convs)
+
+    # test the test_data accuracy
+    print("test the data acc.....")
+    test_datas, test_labels = load_mnist_data(filename='./data/TestSamples.csv',
+                                              label_filename='./data/TestLabels.csv')
+    count = 0
+    for idx, test_data in enumerate(test_datas):
+        target = test_labels[idx]
+        max_prob = 0.
+        max_c = 0
+        for c in params.keys():
+            pis, means, convs = params[c]
+            prob = GMM_prob(test_data, pis, means, convs)
+            if prob > max_prob:
+                max_prob = prob
+                max_c = c
+        if target == max_c:
+            count += 1
+    print("test accuracy is:{} / {} = {} ".format(count, len(test_datas), count / (len(test_datas) + 0.)))
 
 
 if __name__ == "__main__":
