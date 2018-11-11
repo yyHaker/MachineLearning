@@ -8,10 +8,10 @@ def load_sample_data():
     :return:
     """
     datas = [
-        [0, 0], [1, 0], [0, 1],
         [1, 1], [2, 2], [2, 0],
+        [0, 0], [1, 0], [0, 1],
     ]
-    labels = [0, 0, 0, 1, 1, 1]
+    labels = [1, 1, 1, 2, 2, 2]
     return np.array(datas, dtype='float64'), np.array(labels)
 
 
