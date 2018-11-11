@@ -74,19 +74,23 @@ class Perceptron(object):
                 # 所有的样本正确分类
                 if count == n:
                     break
+        # 批量调整版本的感知器算法
         elif mode == 'batch':
-            while np.any(step >= theta):
+            while True:
                 error_samples = np.zeros((1+d))
                 for idx, data in enumerate(datas):
-                    if self.predict(alpha, data) != labels[idx]:
-                        # print("predict label: ", self.predict(data, alpha), " true label: ", labels[idx], "idx: ", idx)
+                    # 收集错误分类的样本
+                    if self.isMisClassified(data, alpha):
                         error_samples += data
-                print("error samples: ", error_samples)
+                # print("error samples: ", error_samples)
                 # calc step
                 step = eta * error_samples
                 # update params
                 alpha += step
-            print("current step: ", step, "alpha: ", alpha)
+                print("current step: ", step, "alpha: ", alpha)
+                # 收敛条件
+                if np.linalg.norm(step, ord=1) < theta:
+                    break
         return alpha
 
     def plot_result(self, datas, alpha):
@@ -106,9 +110,25 @@ class Perceptron(object):
 
 
 def experiment1():
+    """
+     单样本调整版本的感知器算法.
+    :return:
+    """
     datas, labels = load_sample_data()
     perceptron = Perceptron()
     alpha = perceptron.train(datas, labels)
+    print("last alpha: ", alpha)
+    perceptron.plot_result(datas, alpha)
+
+
+def experiment2():
+    """
+    批量调整版本的感知器算法.
+    :return:
+    """
+    datas, labels = load_sample_data()
+    perceptron = Perceptron()
+    alpha = perceptron.train(datas, labels, eta=0.01, theta=1e-4, mode='batch')
     print("last alpha: ", alpha)
     perceptron.plot_result(datas, alpha)
 

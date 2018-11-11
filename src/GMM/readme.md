@@ -7,4 +7,6 @@
 ## result
 使用GMM分类器在mnist上的分类结果：
 
+![mnist result](/src/GMM/pictures/mnist_res.png)
+
 

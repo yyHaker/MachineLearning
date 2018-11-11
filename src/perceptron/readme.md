@@ -5,6 +5,11 @@ $$J ( \boldsymbol { a } ) = \sum _ { \boldsymbol { y } \in Y } - \boldsymbol { a
 
 
 ## result
-1. 使用感知器算法分类如下数据结果
+1. 使用单样本调整版本的感知器算法分类如下结果
 
-![peceptron result](/src/perceptron/pictures/perceptron_res.png)
+![perceptron single result](/src/perceptron/pictures/perceptron_single.png)
+
+2. 使用批量调整版本的感知器算法分类如下效果
+
+![perceptron batch result](/src/perceptron/pictures/perceptron_batch.png)
+
