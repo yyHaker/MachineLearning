@@ -135,7 +135,7 @@ def experiment2():
 
 def experiment3():
     """
-    使用感知器算法分类多类样本.
+    使用感知器算法分类多类样本.（线性不可分，无法收敛）
     ------
     1. 数据集归类
     2. 每两类训练一个感知器模型，得到参数alpha，这样总共得到c(c-1)/2个
@@ -190,6 +190,8 @@ def experiment3():
         if p_lbl == test_labels[idx]:
             count += 1
     print("total test acc is {} / {} = {}".format(count, test_n, (count + 0.0)/test_n))
+
+
 
 
 if __name__ == "__main__":
