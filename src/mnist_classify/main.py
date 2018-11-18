@@ -17,7 +17,7 @@ import argparse
 
 from dataHelper import load_mnist_data, MnistDataSet
 from models import MultiLayersNetwork
-from myutils import write_data_to_file
+from myutils import write_data_to_file, write_to_csv, calc_acc
 
 device = torch.device("cuda: 0" if torch.cuda.is_available() else "cpu")
 
@@ -104,9 +104,12 @@ def main(args):
     print("create models....")
     model = nn.Sequential(
         nn.Linear(81, 500),
-        nn.Dropout(),
+        nn.BatchNorm1d(500),
+        nn.Dropout(p=args.drop_out),
         nn.ReLU(),
         nn.Linear(500, 300),
+        nn.BatchNorm1d(300),
+        nn.Dropout(p=args.drop_out),
         nn.ReLU(),
         nn.Linear(300, 10)
     )
@@ -125,19 +128,22 @@ def main(args):
     elif args.optim == "adam":
         optimizer = torch.optim.Adam(model.parameters(), args.lr,
                                      weight_decay=args.weight_decay)
+    elif args.optim == "adadelta":
+        optimizer = torch.optim.Adadelta(model.parameters(), args.lr,
+                                         weight_decay=args.weight_decay)
 
     # begin train
     # data to plot
     loss_dict = {"train_loss": [], "valid_loss": []}
     acc_dict = {"train_acc": [], "valid_acc": []}
-    cur_acc = 0.
+    best_train_acc, best_valid_acc = 0., 0.
     for epoch in range(args.epochs):
         # train for one epoch
         train_loss, train_acc = train(train_dataloaders, model, criterion, optimizer, epoch)
-        print("Epoch: {} done, loss: {}, acc: {}".format(epoch, train_loss, train_acc))
+        print("Epoch: {} done, loss: {}, train acc: {}".format(epoch, train_loss, train_acc))
         # valid for one epoch
         valid_loss, valid_acc = evaluate(valid_dataloaders, model, criterion, epoch)
-        print("valid the model: loss: {}, acc: {}".format(valid_loss, valid_acc))
+        print("valid the model: loss: {}, valid acc: {}".format(valid_loss, valid_acc))
 
         # save data to plot
         loss_dict["train_loss"].append(train_loss)
@@ -145,30 +151,89 @@ def main(args):
         acc_dict["train_acc"].append(train_acc)
         acc_dict["valid_acc"].append(valid_acc)
 
-        # save current best model
-        if cur_acc < valid_acc:
-            cur_acc = valid_acc
+        # save current best model(s.t. valid acc)
+        if best_valid_acc < valid_acc:
+            best_valid_acc = valid_acc
+            best_train_acc = train_acc
             torch.save(model.state_dict(), args.model_path)
     # train done
     print("train is done!")
+    print("for the best model, train acc is: {}, valid acc is: {}".format(best_train_acc, best_valid_acc))
     # write data to file
     write_data_to_file(loss_dict, "result/loss_dict.pkl")
     write_data_to_file(acc_dict, "result/acc_dict.pkl")
 
 
+def predict(args):
+    # load test data
+    print("load test data....")
+    test_datas = MnistDataSet(file_name='./data/test_data/TestSamples.csv',
+                              data_type="test")
+    test_dataloader = DataLoader(test_datas, batch_size=1)
+    print("training data size: ", len(test_datas))
+
+    # load model
+    print("loading models....")
+    model = nn.Sequential(
+        nn.Linear(81, 500),
+        nn.BatchNorm1d(500),
+        nn.Dropout(p=args.drop_out),
+        nn.ReLU(),
+        nn.Linear(500, 300),
+        nn.BatchNorm1d(300),
+        nn.Dropout(p=args.drop_out),
+        nn.ReLU(),
+        nn.Linear(300, 10)
+    )
+    model.to(device)
+    state_dict = torch.load(args.model_path, map_location=lambda storage, loc: storage)
+    model.load_state_dict(state_dict)
+    # set to eval mode
+    model.eval()
+
+    res_list = []
+    print("begin predict....")
+    for idx, sample in enumerate(test_dataloader):
+        data = Variable(sample['data']).to(device)
+
+        output = model(data)
+        predict = torch.argmax(output)
+        # print("predict: ", predict.item())
+        res_list.append(predict.item())
+
+    # write res to csv
+    write_to_csv(res_list, args.predict_path)
+    print("write done!")
+
+    # calc acc.
+    # acc = calc_acc(args.predict_path, 'data/test_data/TestLabels.csv')
+    # print("acc is: {}".format(acc))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch fine tune MNIST data Training')
+
+    # mode params
+    parser.add_argument("--train", dest='train', action='store_true',
+                        help='use model to do train')
+    parser.add_argument('--evaluate', dest='evaluate', action='store_true',
+                        help='evaluate model on validation set')
+    parser.add_argument('--predict', dest='predict', action='store_true',
+                        help='use  model to do prediction')
+
     # model params
-    parser.add_argument('--epochs', default=80, type=int, metavar='N',
+    parser.add_argument('--epochs', default=50, type=int, metavar='N',
                         help='number of total epochs to run (default: 50)')
-    parser.add_argument('-b', '--batch_size', default=64, type=int,
+    parser.add_argument('--batch_size', default=64, type=int,
                         metavar='N', help='mini-batch size (default: 64)')
     parser.add_argument('--lr', '--learning_rate', default=0.00001, type=float,
                         metavar='LR', help='initial learning rate (default 0.0001)')
-    parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
+    parser.add_argument('-momentum', default=0.9, type=float, metavar='M',
                         help='momentum (default: 0.9)')
     parser.add_argument('--weight_decay', '--wd', default=1e-4, type=float,
                         metavar='W', help='weight decay (default: 1e-4)')
+    parser.add_argument('--drop_out', default=0.1, type=float,
+                        help='drop out rate')
     parser.add_argument("--optim", '--op', default='momentum', type=str,
                         help='use what optimizer (default: momentum)')
 
@@ -177,18 +242,22 @@ if __name__ == "__main__":
                         metavar='N', help='print frequency (default: 104 batch)')
 
     # save params
-    parser.add_argument("-model_path", default="result/best_model.pkl",
+    parser.add_argument("--model_path", default="result/best_model.pkl",
                         help="current best model path")
 
     parser.add_argument('--test_dir', default='test_b', type=str,
                         help='test data dir (default: test_b)')
+    parser.add_argument("--predict_path", default='data/test_data/Result.csv', type=str,
+                        help='test data predict file path')
 
-    parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
-                        help='evaluate model on validation set')
-    parser.add_argument('--predict', dest='predict', action='store_true',
-                        help='use  model to do prediction')
     args = parser.parse_args()
-    main(args)
+    predict(args)
+    # if args.train:
+    #     main(args)
+    # elif args.predict:
+    #     predict(args)
+    # else:
+    #     print("invalid args")
 
 
 

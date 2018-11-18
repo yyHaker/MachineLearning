@@ -16,8 +16,8 @@ def load_sample_data():
     return np.array(datas, dtype='float64'), np.array(labels)
 
 
-def load_mnist_data(filename='./data/TrainSamples.csv',
-                    label_filename='./data/TrainLabels.csv'):
+def load_mnist_data(filename='./data/TestSamples.csv',
+                    label_filename='./data/TrueLabels.csv'):
     """
     load mnist data
     :param filename:

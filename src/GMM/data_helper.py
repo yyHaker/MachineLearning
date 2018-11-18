@@ -80,8 +80,8 @@ def load_samples_test_data(test1_path='data/Test1.csv', test2_path='data/Test2.c
     return np.array(test1_data, dtype='float64'), np.array(test2_data, dtype='float64')
 
 
-def load_mnist_data(filename='./data/TrainSamples.csv',
-                    label_filename='./data/TrainLabels.csv'):
+def load_mnist_data(filename='./data/TestSamples.csv',
+                    label_filename='./data/TrueLabels.csv'):
     """
     load mnist data
     :param filename:

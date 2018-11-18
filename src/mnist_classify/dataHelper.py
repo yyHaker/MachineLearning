@@ -33,7 +33,7 @@ class MnistDataSet(Dataset):
         self.split_rate = split_rate
         self.data_type = data_type
 
-        if data_type == "train" or "valid":
+        if data_type == "train" or data_type == "valid":
             if self.split_rate is None:
                 self.train_datas, self.train_labels = self._load_train_datas()
             else:
@@ -55,7 +55,7 @@ class MnistDataSet(Dataset):
             label = torch.LongTensor([self.valid_labels[idx]])
             sample = {"data": data, "label": label}
         elif self.data_type == "test":
-            data = torch.Tensor(self.test_datas)
+            data = torch.Tensor(self.test_datas[idx])
             sample = {"data": data}
         else:
             raise Exception("data type error")
@@ -94,7 +94,13 @@ class MnistDataSet(Dataset):
             return train_datas, train_labels, valid_datas, valid_labels
 
     def _load_test_datas(self):
-        pass
+        with open(self.file_name, 'r') as csvfile:
+            lines = csv.reader(csvfile)
+            dataSet = list(lines)
+
+            datas = np.array(dataSet, dtype='float64')
+            # print("test data shape: ", datas.shape)
+        return datas
 
     def _split_datas(self, datas, labels, split_rate):
         """
