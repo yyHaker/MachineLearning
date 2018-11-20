@@ -92,9 +92,9 @@ def accuracy(output, target):
 
 def main(args):
     # load data
-    print("load data......")
-    train_datas = MnistDataSet(data_type="train")
-    valid_datas = MnistDataSet(data_type="valid")
+    print("loading datas......")
+    train_datas = MnistDataSet(file_name=args.trainSamples, label_filename=args.trainLabels, data_type="train")
+    valid_datas = MnistDataSet(file_name=args.validSamples, label_filename=args.validLabels, data_type="valid")
     train_dataloaders = DataLoader(train_datas, batch_size=args.batch_size, shuffle=True)
     valid_dataloaders = DataLoader(valid_datas, batch_size=args.batch_size, shuffle=True)
     print("train data size: ", len(train_datas))
@@ -103,15 +103,19 @@ def main(args):
     # create models
     print("create models....")
     model = nn.Sequential(
-        nn.Linear(81, 500),
+        nn.Linear(81, 800),
+        nn.BatchNorm1d(800),
+        nn.Dropout(p=args.drop_out),
+        nn.ReLU(),
+        nn.Linear(800, 500),
         nn.BatchNorm1d(500),
         nn.Dropout(p=args.drop_out),
         nn.ReLU(),
-        nn.Linear(500, 300),
-        nn.BatchNorm1d(300),
+        nn.Linear(500, 200),
+        nn.BatchNorm1d(200),
         nn.Dropout(p=args.drop_out),
         nn.ReLU(),
-        nn.Linear(300, 10)
+        nn.Linear(200, 10)
     )
     # model = MultiLayersNetwork(81, 100, 60, 10)
     print(model)
@@ -221,6 +225,16 @@ if __name__ == "__main__":
     parser.add_argument('--predict', dest='predict', action='store_true',
                         help='use  model to do prediction')
 
+    # data path
+    parser.add_argument('--trainSamples', default='data/train_data/TrainSamples',
+                        type=str, help="train datas path")
+    parser.add_argument('--trainLabels', default='data/train_data/TrainLabels',
+                        type=str, help="train labels path")
+    parser.add_argument('--validSamples', default='data/valid_data/ValidSamples',
+                        type=str, help="valid datas path")
+    parser.add_argument('--validLabels', default='data/valid_data/ValidLabels',
+                        type=str, help="valid labels path")
+
     # model params
     parser.add_argument('--epochs', default=50, type=int, metavar='N',
                         help='number of total epochs to run (default: 50)')
@@ -244,20 +258,17 @@ if __name__ == "__main__":
     # save params
     parser.add_argument("--model_path", default="result/best_model.pkl",
                         help="current best model path")
-
-    parser.add_argument('--test_dir', default='test_b', type=str,
-                        help='test data dir (default: test_b)')
     parser.add_argument("--predict_path", default='data/test_data/Result.csv', type=str,
                         help='test data predict file path')
 
     args = parser.parse_args()
-    predict(args)
-    # if args.train:
-    #     main(args)
-    # elif args.predict:
-    #     predict(args)
-    # else:
-    #     print("invalid args")
+    # predict(args)
+    if args.train:
+        main(args)
+    elif args.predict:
+        predict(args)
+    else:
+        print("invalid args")
 
 
 

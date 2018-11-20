@@ -40,7 +40,8 @@ def write_to_csv(datas, path):
     :return:
     """
     datas = np.array(datas)
-    datas = np.reshape(datas, (len(datas), 1))
+    if len(datas.shape) < 2:
+        datas = np.reshape(datas, (len(datas), 1))
     # 用csv一行一行的写入,
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
