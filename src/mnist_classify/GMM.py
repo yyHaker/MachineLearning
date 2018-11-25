@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+高斯混合模型(GMM)
+TODO: 下溢
+"""
 import numpy as np
 import copy
-from data_helper import load_samples_data, load_samples_test_data, load_mnist_data
+from dataHelper import load_mnist_data
 
 
 def gaussian(data, mean, cov):
@@ -102,6 +106,8 @@ def kmeans(data, K):
 def GMM(data, K):
     """
     GMM Models.
+    -------
+    下面代码计算过程出现了下溢出问题！
     :param data: 数据集合
     :param K: K
     :return:
@@ -158,55 +164,20 @@ def GMM_prob(data, pis, means, convs):
     return np.sum(probs)
 
 
-def experiment1():
+def main():
     """
-    1. 使用训练样本估计GMM参数(2个GMM)
-    2. 构造区分两类的GMM分类器
-    :return:
-    """
-    # train GMM1 and GMM2
-    K = 2
-    train_data1, train_data2 = load_samples_data()
-    print("for Train1 data: ")
-    pis1, means1, convs1 = GMM(train_data1, K)
-    print("train1 data,  pi: ", pis1, " means: ", means1, " convs: ", convs1)
-
-    print("*"*100)
-
-    print("for Train2 data: ")
-    pis2, means2, convs2 = GMM(train_data2, K)
-    print("train2 data,  pi: ", pis2, " means: ", means2, " convs: ", convs2)
-
-    # test the GMM classifier
-    test_data1, test_data2 = load_samples_test_data()
-    count_1 = 0
-    for data in test_data1:
-        if GMM_prob(data, pis1, means1, convs1) > GMM_prob(data, pis2, means2, convs2):
-            count_1 += 1
-
-    count_2 = 0
-    for data in test_data2:
-        if GMM_prob(data, pis2, means2, convs2) > GMM_prob(data, pis1, means1, convs1):
-            count_2 += 1
-
-    print("count1: ", count_1)
-    print("count2: ", count_2)
-
-
-def experiment2():
-    """
-    GMM分类mnist.
+    GMM分类压缩后的mnist.
     ---------
     1. 对每一个类别训练一个GMM.
     2. 对于一个样本，判断这个样本属于哪个GMM的概率大就属于哪个类别.
     :return:
     """
     # 设置GMM中的K值
-    K = 3
+    K = 10
     # 将数据分为C类
     datas = {}
-    train_datas, train_labels = load_mnist_data(filename='data/TrainSamples.csv',
-                                                label_filename='data/TrainLabels.csv')
+    train_datas, train_labels = load_mnist_data(file_name='data/train_data/TrainSamples',
+                                                label_filename='data/train_data/TrainLabels')
     for idx, j in enumerate(train_labels):
         if j not in datas.keys():
             datas[j] = []
@@ -221,8 +192,8 @@ def experiment2():
 
     # test the test_data accuracy
     print("test the data acc.....")
-    test_datas, test_labels = load_mnist_data(filename='data/TestSamples.csv',
-                                              label_filename='data/TestLabels.csv')
+    test_datas, test_labels = load_mnist_data(file_name='data/valid_data/ValidSamples',
+                                              label_filename='data/valid_data/ValidLabels')
     count = 0
     for idx, test_data in enumerate(test_datas):
         target = test_labels[idx]
@@ -240,7 +211,7 @@ def experiment2():
 
 
 if __name__ == "__main__":
-    experiment2()
+    main()
 
 
 

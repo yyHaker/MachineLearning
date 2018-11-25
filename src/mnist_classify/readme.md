@@ -9,7 +9,29 @@ Total data size|Train data size|Valid data size
 
 # 模型与结果
 
-* 方法一：神经网络
+* 方法一: K-NN
+
+models | train accuracy| test accuracy
+--------|---------------|-----------------
+KNN+std|0.943 | 0.9065
+KNN| 0.9757    | 0.958 
+
+* 方法二：朴素贝叶斯NB
+
+models | train accuracy| test accuracy
+--------|---------------|-----------------
+NB| 0.881   | 0.873
+NB+std|0.881  |   0.873
+
+* 方法三：支持向量机SVM
+
+models | train accuracy| test accuracy
+--------|---------------|-----------------
+SVM|    1.0 | 0.113
+SVM+std| 1.0 |   0.966
+
+
+* 方法四：神经网络(DNN)
 
 models | train accuracy| valid accuracy| test accuracy|iteration epochs
 --------|---------------|-----------------|---------------|-----------------

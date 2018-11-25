@@ -103,9 +103,9 @@ class MnistDataSet(Dataset):
 # some other functions.
 def load_mnist_data(file_name='./data/TrainSamples.csv',
                     label_filename='./data/TrainLabels.csv',
-                    split_rate=0.7, shuffle=True):
+                    split_rate=None, shuffle=False):
     """
-    load mnist data.
+    load mnist data. (support split automaticly)
     ---------
     data: numpy array [81, ].
     label: int.
@@ -128,7 +128,6 @@ def load_mnist_data(file_name='./data/TrainSamples.csv',
     datas, labels = np.array(dataSet, dtype='float64'), np.array(training_data_label)
 
     if split_rate is None:
-        print('not split the data')
         return datas, labels
     else:
         train_datas, train_labels, valid_datas, valid_labels = \
