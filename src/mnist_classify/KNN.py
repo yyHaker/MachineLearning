@@ -25,9 +25,9 @@ def main():
     print("Train data size: {}, Test data size: {}".format(len(train_datas), len(test_datas)))
 
     # 对训练和测试的特征数据进行标准化
-    ss = StandardScaler()
-    train_datas = ss.fit_transform(train_datas)
-    test_datas = ss.transform(test_datas)
+    # ss = StandardScaler()
+    # train_datas = ss.fit_transform(train_datas)
+    # test_datas = ss.transform(test_datas)
 
     # create models and train
     print("training the model....")
